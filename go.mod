@@ -1,4 +1,4 @@
-module my-grpc-proto
+module github.com/Leemacintyre/my-grpc-proto
 
 go 1.22.5
 
