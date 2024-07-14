@@ -73,8 +73,8 @@ protoc-openapiv2-gateway:
 	--openapiv2_opt allow_merge=true \
 	--openapiv2_opt merge_file_name=merged \
   ./proto/hello/*.proto \
-#	./proto/bank/*.proto ./proto/bank/type/*.proto \
-#	./proto/resiliency/*.proto
+	./proto/bank/*.proto ./proto/bank/type/*.proto \
+	./proto/resiliency/*.proto
 
 
 .PHONY: build-gateway
@@ -88,4 +88,5 @@ pipeline-init-gateway:
 
 
 .PHONY: pipeline-build-gateway
-pipeline-build-gateway: pipeline-init-gateway build-gateway protoc-openapiv2-gateway
+pipeline-build-gateway: pipeline-init-gateway build-gateway
+#protoc-openapiv2-gateway
