@@ -16,4 +16,5 @@ message HelloResponse {
 service HelloService {
   rpc SayHello(helloRequest) returns (HelloResponse) {}
   rpc SayManyHellos(helloRequest) returns (stream HelloResponse) {}
+  rpc SayHelloToEveryone(stream helloRequest) returns (HelloResponse) {}
 }
