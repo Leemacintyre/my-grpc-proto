@@ -133,7 +133,7 @@ func (c *helloServiceClient) SayHelloContinuous(ctx context.Context, opts ...grp
 
 type HelloService_SayHelloContinuousClient interface {
 	Send(*HelloRequest) error
-	CloseAndRecv() (*HelloResponse, error)
+	Recv() (*HelloResponse, error)
 	grpc.ClientStream
 }
 
@@ -145,10 +145,7 @@ func (x *helloServiceSayHelloContinuousClient) Send(m *HelloRequest) error {
 	return x.ClientStream.SendMsg(m)
 }
 
-func (x *helloServiceSayHelloContinuousClient) CloseAndRecv() (*HelloResponse, error) {
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
+func (x *helloServiceSayHelloContinuousClient) Recv() (*HelloResponse, error) {
 	m := new(HelloResponse)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
@@ -266,7 +263,7 @@ func _HelloService_SayHelloContinuous_Handler(srv interface{}, stream grpc.Serve
 }
 
 type HelloService_SayHelloContinuousServer interface {
-	SendAndClose(*HelloResponse) error
+	Send(*HelloResponse) error
 	Recv() (*HelloRequest, error)
 	grpc.ServerStream
 }
@@ -275,7 +272,7 @@ type helloServiceSayHelloContinuousServer struct {
 	grpc.ServerStream
 }
 
-func (x *helloServiceSayHelloContinuousServer) SendAndClose(m *HelloResponse) error {
+func (x *helloServiceSayHelloContinuousServer) Send(m *HelloResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
@@ -313,6 +310,7 @@ var HelloService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "SayHelloContinuous",
 			Handler:       _HelloService_SayHelloContinuous_Handler,
+			ServerStreams: true,
 			ClientStreams: true,
 		},
 	},
