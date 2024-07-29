@@ -19,7 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion8
 
 const (
-	BankService_GetCurrentBalance_FullMethodName = "/bank.BankService/GetCurrentBalance"
+	BankService_GetCurrentBalance_FullMethodName        = "/bank.BankService/GetCurrentBalance"
+	BankService_FetchExchangeRateRequest_FullMethodName = "/bank.BankService/FetchExchangeRateRequest"
 )
 
 // BankServiceClient is the client API for BankService service.
@@ -27,6 +28,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type BankServiceClient interface {
 	GetCurrentBalance(ctx context.Context, in *CurrentBalanceRequest, opts ...grpc.CallOption) (*CurrentBalanceResponse, error)
+	FetchExchangeRateRequest(ctx context.Context, in *ExchangeRateRequest, opts ...grpc.CallOption) (BankService_FetchExchangeRateRequestClient, error)
 }
 
 type bankServiceClient struct {
@@ -47,11 +49,45 @@ func (c *bankServiceClient) GetCurrentBalance(ctx context.Context, in *CurrentBa
 	return out, nil
 }
 
+func (c *bankServiceClient) FetchExchangeRateRequest(ctx context.Context, in *ExchangeRateRequest, opts ...grpc.CallOption) (BankService_FetchExchangeRateRequestClient, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &BankService_ServiceDesc.Streams[0], BankService_FetchExchangeRateRequest_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &bankServiceFetchExchangeRateRequestClient{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type BankService_FetchExchangeRateRequestClient interface {
+	Recv() (*ExchangeRateResponse, error)
+	grpc.ClientStream
+}
+
+type bankServiceFetchExchangeRateRequestClient struct {
+	grpc.ClientStream
+}
+
+func (x *bankServiceFetchExchangeRateRequestClient) Recv() (*ExchangeRateResponse, error) {
+	m := new(ExchangeRateResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // BankServiceServer is the server API for BankService service.
 // All implementations must embed UnimplementedBankServiceServer
 // for forward compatibility
 type BankServiceServer interface {
 	GetCurrentBalance(context.Context, *CurrentBalanceRequest) (*CurrentBalanceResponse, error)
+	FetchExchangeRateRequest(*ExchangeRateRequest, BankService_FetchExchangeRateRequestServer) error
 	mustEmbedUnimplementedBankServiceServer()
 }
 
@@ -61,6 +97,9 @@ type UnimplementedBankServiceServer struct {
 
 func (UnimplementedBankServiceServer) GetCurrentBalance(context.Context, *CurrentBalanceRequest) (*CurrentBalanceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetCurrentBalance not implemented")
+}
+func (UnimplementedBankServiceServer) FetchExchangeRateRequest(*ExchangeRateRequest, BankService_FetchExchangeRateRequestServer) error {
+	return status.Errorf(codes.Unimplemented, "method FetchExchangeRateRequest not implemented")
 }
 func (UnimplementedBankServiceServer) mustEmbedUnimplementedBankServiceServer() {}
 
@@ -93,6 +132,27 @@ func _BankService_GetCurrentBalance_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BankService_FetchExchangeRateRequest_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ExchangeRateRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(BankServiceServer).FetchExchangeRateRequest(m, &bankServiceFetchExchangeRateRequestServer{ServerStream: stream})
+}
+
+type BankService_FetchExchangeRateRequestServer interface {
+	Send(*ExchangeRateResponse) error
+	grpc.ServerStream
+}
+
+type bankServiceFetchExchangeRateRequestServer struct {
+	grpc.ServerStream
+}
+
+func (x *bankServiceFetchExchangeRateRequestServer) Send(m *ExchangeRateResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // BankService_ServiceDesc is the grpc.ServiceDesc for BankService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -105,6 +165,12 @@ var BankService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _BankService_GetCurrentBalance_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "FetchExchangeRateRequest",
+			Handler:       _BankService_FetchExchangeRateRequest_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "proto/bank/service.proto",
 }
